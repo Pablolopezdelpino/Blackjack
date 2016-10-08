@@ -2,23 +2,38 @@ package com.pldp.blackjack;
 
 import com.pldp.blackjack.api.Dealer;
 import com.pldp.blackjack.api.Player;
-import java.util.Arrays;
+import com.pldp.cards.Deck;
 
 public class Game {
 
-    public Rules.Result run(Rules rules, Dealer dealer, Player player) {
-        dealer.start(Arrays.asList(player));
-        if (!rules.isBlackjack(player.getHand())) {
-            player.onTurn(dealer);
-            if (rules.isBust(player.getHand())) {
+    private boolean tooGreedy(Deck deck, Player player) {
+        while (true) {
+            if (player.isBlackjack() || player.stand()) {
+                return false;
+            }
+            player.receive(deck.retrieve(), true);
+            if (player.isBust()) { // oops
+                return true;
+            }
+        }
+    }
+
+    public Rules.Result run(Rules rules, Deck deck, Dealer dealer, Player player) {
+        rules.genDeck(deck);
+        deck.shuffle();
+        dealer.receive(deck.retrieve(), true);
+        dealer.receive(deck.retrieve(), false);
+        player.receive(deck.retrieve(), true);
+        player.receive(deck.retrieve(), true);
+        if (!player.isBlackjack()) {
+            if(tooGreedy(deck, player)) {
                 return Rules.Result.lose;
             }
-            dealer.onTurn(dealer);
-            if (rules.isBust(dealer.getHand())) {
+            if(tooGreedy(deck, dealer)) {
                 return Rules.Result.win;
             }
         }
         dealer.flip();
-        return rules.evaluate(player.getHand(), dealer.getHand());
+        return rules.evaluate(player.getScore(), dealer.getScore());
     }
 }

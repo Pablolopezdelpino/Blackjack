@@ -5,8 +5,7 @@ import com.pldp.cards.Deck;
 import com.pldp.cards.StandardDeck;
 import com.pldp.cards.Card;
 
-public class Rules {
-    
+public class Rules {    
     public static enum Result {
         lose,
         win,
@@ -24,18 +23,16 @@ public class Rules {
     }
     
     /** Evaluate the hand relative to the dealer's hand. */
-    public Result evaluate(Hand h, Hand dealerHand) {
-        if(isBust(h)) {
+    public Result evaluate(int myScore, int dealerScore) {
+        if(isBust(myScore)) {
             return Result.lose;
         }
-        if(isBust(dealerHand)) {
+        if(isBust(dealerScore)) {
             return Result.win;
         }
-        int score = score(h);
-        int dealerScore = score(dealerHand);
-        if(score < dealerScore) {
+        if(myScore < dealerScore) {
             return Result.lose;
-        } else if(score > dealerScore) {
+        } else if(myScore > dealerScore) {
             return Result.win;
         } else /*if(score == dealerScore)*/ {
             return Result.push;
@@ -75,8 +72,8 @@ public class Rules {
         return c.getValue() == 1;
     }
     
-    public boolean isBlackjack(Hand h) {
-        return score(h) == GOAL_SCORE;
+    public boolean isBlackjack(int score) {
+        return score == GOAL_SCORE;
     }
     
     public int minValue(Hand h) {
@@ -85,11 +82,15 @@ public class Rules {
                 .sum();
     }
     
-    public boolean isBust(Hand h) {
-        return score(h) > Rules.GOAL_SCORE;
+    public boolean isBust(int score) {
+        return score > Rules.GOAL_SCORE;
     }
     
     public int minValue(Card card) {
         return Math.min(card.getValue(), 10);
+    }
+    
+    public boolean dealerShouldPass(int score) {
+        return score >= 17; // pass if score >= 17
     }
 }

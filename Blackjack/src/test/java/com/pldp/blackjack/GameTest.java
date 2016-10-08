@@ -2,7 +2,7 @@ package com.pldp.blackjack;
 
 import com.pldp.blackjack.api.Dealer;
 import com.pldp.blackjack.api.Player;
-import org.junit.After;
+import com.pldp.cards.Deck;
 import org.junit.Before;
 import org.junit.Test;
 import static org.mockito.Mockito.*;
@@ -11,43 +11,41 @@ import static org.junit.Assert.*;
 public class GameTest {
         Game game;
         Rules rules;
+        Deck deck;
         Dealer dealer;
         Player player;
     
     @Before
     public void setUp() {
         game = new Game();
+        deck = mock(Deck.class);
         rules = mock(Rules.class);
         dealer = mock(Dealer.class);
         player = mock(Player.class);
     }
-    
-    @After
-    public void tearDown() {
-        rules = null;
-        dealer = null;
-        player = null;
-    }
 
     @Test
     public void testRun() {
-        when(rules.evaluate(any(), any())).thenReturn(Rules.Result.push);
-        Rules.Result expResult = game.run(rules, dealer, player);
-        assertEquals(Rules.Result.push, expResult);
+        when(player.isBlackjack()).thenReturn(true);
+        when(dealer.isBlackjack()).thenReturn(true);
+        when(player.getScore()).thenReturn(21);
+        when(dealer.getScore()).thenReturn(21);
+        when(rules.evaluate(21, 21)).thenReturn(Rules.Result.push);
+        assertEquals(Rules.Result.push, game.run(rules, deck, dealer, player));
     }
     
     @Test
     public void testPlayerBust() {
-        when(rules.isBust(any())).thenReturn(true);
-        Rules.Result expResult = game.run(rules, dealer, player);
-        assertEquals(Rules.Result.lose, expResult);
+        when(player.isBust()).thenReturn(true);
+        assertEquals(Rules.Result.lose, game.run(rules, deck, dealer, player));
     }
     
     @Test
     public void testDealerBust() {
-        when(rules.isBust(any())).thenReturn(false).thenReturn(true);
-        Rules.Result expResult = game.run(rules, dealer, player);
-        assertEquals(Rules.Result.win, expResult);
+        when(dealer.isBust()).thenReturn(true);
+        when(player.stand()).thenReturn(true);
+        when(player.isBlackjack()).thenReturn(false);
+        assertEquals(Rules.Result.win, game.run(rules, deck, dealer, player));
     }
     
 }

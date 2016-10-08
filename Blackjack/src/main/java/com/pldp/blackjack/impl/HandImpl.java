@@ -19,7 +19,7 @@ public class HandImpl implements Hand {
     }
     private final List<Entry> hand = new ArrayList<>();
     @Override
-    public void add(Card card, Boolean shown) {
+    public void add(Card card, boolean shown) {
         hand.add(new Entry(card, shown));
     }
 

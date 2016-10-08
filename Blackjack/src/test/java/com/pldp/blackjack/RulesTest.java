@@ -62,30 +62,22 @@ public class RulesTest {
      */
     @Test
     public void testEvaluate() {
-        Hand blackjackHand = genHand(new Card(1, 1), new Card(1, 10));
-        for (int j = 0; j < 300; ++j) {
-            Hand hand = randomHand(3);
-            Hand dealersHand = blackjackHand;
-            Rules.Result result = rules.evaluate(hand, dealersHand);
-            if (rules.isBlackjack(hand)) { // check blackjack always pushes against blackjack
-                assertEquals(Rules.Result.push, result);
-            } else { // check anything not blackjack always loses against blackjack
-                assertEquals(Rules.Result.lose, result);
-            }
-        }
-        Hand nonBlackjackHand = genHand(new Card(1, 1), new Card(1, 9));
-        for (int j = 0; j < 300; ++j) {
-            Hand hand = randomHand(3);
-            Hand dealersHand = nonBlackjackHand;
-            Rules.Result result = rules.evaluate(hand, dealersHand);
-            if (rules.isBlackjack(hand)) { // check blackjack always wins against no blackjack
-                assertEquals(Rules.Result.win, result);
-            } else if(rules.isBust(hand)) { // check bust always loses
-                assertEquals(Rules.Result.lose, result);
-            } else if(rules.score(hand) < rules.score(dealersHand)){
-                assertEquals(Rules.Result.lose, result);
-            } else {
-                assertEquals(rules.score(hand), rules.score(dealersHand));
+        for(int myScore = 1; myScore < 30; ++myScore) {
+            for(int dealerScore = 1; dealerScore < 30; ++dealerScore) {
+                Rules.Result result = rules.evaluate(myScore, dealerScore);
+                if(rules.isBust(myScore)) {
+                    assertEquals(Rules.Result.lose, result); // lose if I bust
+                } else if(rules.isBust(dealerScore)) {
+                    assertEquals(Rules.Result.win, result); // win if he busts
+                } else {
+                    if(myScore < dealerScore) {
+                        assertEquals(Rules.Result.lose, result); // lose if lower score
+                    } else if(myScore > dealerScore) { 
+                        assertEquals(Rules.Result.win, result); // win if higher score
+                    } else {
+                        assertEquals(Rules.Result.push, result); // push if same score
+                    }
+                }
             }
         }
     }
@@ -93,20 +85,27 @@ public class RulesTest {
     /**
      * Check if the two cards constitute a blackjack, must equal t.
      */
-    private void checkBlackjack(Card c1, Card c2, boolean t) {
-        assertEquals(rules.isBlackjack(genHand(c1, c2)), t);
+    private void checkBlackjack(int score, boolean t) {
+        assertEquals(t, rules.isBlackjack(score));
     }
     /**
      * Test of isBlackjack method, of class Rules.
      */
     @Test
     public void testIsBlackjack() {
-        Card ace = new Card(1, 1);
-        for (int v = StandardDeck.MIN_VALUE; v <= StandardDeck.MAX_VALUE; ++v) {
-            Card card = new Card(1, v);
-            boolean isFigure = v >= 10;
-            checkBlackjack(ace, card, isFigure); // ace + figure -> blackjack
-            checkBlackjack(card, ace, isFigure); // figure + ace -> blackjack
+        for (int score = 1; score < 30; ++score) {
+            checkBlackjack(score, score == 21); // blackjack when score = 21
+        }
+    }
+    
+    private void checkBust(int score, boolean t) {
+        assertEquals(t, rules.isBust(score));
+    }
+    
+    @Test
+    public void testIsBust() {
+        for (int score = 1; score < 30; ++score) {
+            checkBust(score, score > 21); // bust when score > 21
         }
     }
 
@@ -119,6 +118,13 @@ public class RulesTest {
             for(int value=StandardDeck.MIN_VALUE;value<=StandardDeck.MAX_VALUE;++value) {
                 assertEquals(Math.min(value, 10), rules.minValue(new Card(suit.ordinal(), value))); // check min value of all cards (1 - 10)
             }
+        }
+    }
+    
+    @Test
+    public void testDealerShouldPass() {
+        for(int score=1;score<=30;++score) {
+            assertEquals(score >= 17, rules.dealerShouldPass(score));
         }
     }
 }

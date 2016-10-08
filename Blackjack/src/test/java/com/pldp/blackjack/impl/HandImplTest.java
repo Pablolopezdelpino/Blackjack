@@ -6,7 +6,7 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 public class HandImplTest {
-    private Rules rules = new Rules();
+    private final Rules rules = new Rules();
     /**
      * Test of add method, of class HandImpl.
      */
